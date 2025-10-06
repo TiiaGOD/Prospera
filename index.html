@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MISSÃO Dia das Crianças — Sequência de Jogos (com Ranking)</title>
+
+<link rel="icon" type="image/png" href="https://i.imgur.com/aRmpE3K.png">
+
+
+<style>
+  :root{
+    --bg:#f4f8fb;
+    --card:#ffffff;
+    --ink:#0b2533;
+    --brand:#005d9a;      /* azul da empresa */
+    --brand-2:#0a77bf;
+    --accent:#a2c617;     /* verde-lima para feedbacks/OK */
+    --soft:#e9f2f8;
+    --ok:#16a34a;
+    --bad:#ef4444;
+    --border:#d7e3eb;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 100% 0%, #d6ecfa 0%, var(--bg) 40%) no-repeat,
+      linear-gradient(#f8fbfe,#f8fbfe);
+    min-height:100svh; display:flex; align-items:flex-start; justify-content:center; padding:20px;
+  }
+  .wrap{ width:min(1100px, 100%); display:grid; gap:14px; }
+
+  header{
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    color:#fff; padding:16px 18px; border-radius:16px;
+    display:grid; grid-template-columns: 1fr auto; align-items:center; gap:12px;
+    box-shadow: 0 8px 26px rgba(0,93,154,.25); position:relative; overflow:hidden;
+  }
+  header .t{ font-size: clamp(20px, 2.6vw, 30px); font-weight:900; letter-spacing:.2px }
+  header .sub{ opacity:.98; font-weight:600 }
+  .meta{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; background:#062b44; color:#fff; border-radius:999px; font-weight:800
+  }
+  .brand-logos{
+    position:absolute; inset:auto 14px 10px auto; display:flex; gap:10px; align-items:center; opacity:.95;
+  }
+  .brand-logos img{ height:34px; width:auto; display:block; background:#ffffff14; border-radius:8px; padding:6px }
+
+  .badge{
+    position:absolute; right:12px; top:12px; width:70px; height:auto; opacity:.9; filter: drop-shadow(0 4px 10px rgba(0,0,0,.15));
+  }
+
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.05);
+  }
+  .row{display:flex; gap:14px; flex-wrap:wrap; align-items:center}
+  .grow{flex:1 1 260px}
+  label{font-weight:700; font-size:14px; display:block; margin-bottom:6px}
+  input[type="text"]{
+    width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--border); font-size:16px; color:var(--ink); background:#fff;
+  }
+  button{
+    appearance:none; border:0; background:var(--brand); color:#fff; padding:12px 16px; border-radius:12px;
+    font-weight:800; letter-spacing:.3px; cursor:pointer; transition:.2s transform, .2s box-shadow, .2s opacity;
+    box-shadow: 0 8px 18px rgba(0,93,154,.25);
+  }
+  button:hover{transform:translateY(-1px)}
+  button:disabled{opacity:.6; cursor:not-allowed}
+  .btn-ghost{background:#062b44; color:#fff; box-shadow: 0 8px 18px rgba(6,43,68,.15);}
+  .btn-alt{background:var(--accent); color:#0f2b00; box-shadow:0 8px 18px rgba(162,198,23,.25)}
+  .btn-light{background:#e8f2f9; color:#0b2533}
+
+  .stage{ display:none; animation:fade .25s ease-out; }
+  .stage.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)}}
+  .hint{font-size:14px; background:var(--soft); border:1px dashed #b7d6e7; padding:10px 12px; border-radius:10px; color:#09354e}
+  .q{font-size: clamp(18px, 2.3vw, 22px); font-weight:800; margin:6px 0 12px}
+  .big{font-size: clamp(28px, 5vw, 44px); line-height:1.1; font-weight:900}
+  .divider{height:1px; background:#edf4f8; margin:12px 0}
+  .small{font-size:13px; opacity:.78}
+
+  /* Board (7 Erros + Encontre PI) */
+  .board{
+    position:relative; width:100%; max-width:100%; border-radius:14px; overflow:hidden; border:1px solid #e5eef5;
+    background:#fff;
+  }
+  .img-wrap{position:relative; width:100%}
+  .img-wrap img{display:block; width:100%; height:auto; user-select:none; -webkit-user-drag:none}
+  .hotzone{position:absolute; inset:0; cursor:crosshair;}
+
+  /* Marcadores */
+  .marker{
+    position:absolute; width:34px; height:34px; transform:translate(-50%,-50%);
+    border-radius:999px; outline:4px solid var(--ok); background:rgba(22,163,74,.12);
+    display:grid; place-items:center; font-weight:900; color:#0f2b00; pointer-events:none;
+  }
+  .marker::after{ content:"✓"; font-size:16px; }
+  .ripple{
+    position:absolute; width:12px; height:12px; border-radius:999px; background:rgba(239,68,68,.5);
+    transform:translate(-50%,-50%); animation:pop .8s ease-out forwards; pointer-events:none;
+  }
+  @keyframes pop{
+    0%{opacity:.9; transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0; transform:translate(-50%,-50%) scale(8)}
+  }
+
+  .status{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin:8px 0 0;}
+  .status .pill{background:#fff; color:#111; border:2px solid #111}
+  .tally{font-weight:900}
+
+  /* Labirinto */
+  .board-lab{
+    display:grid; gap:6px; justify-content:center; align-content:center; padding:10px;
+    background:#fff; border:1px solid #e5eef5; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.05);
+  }
+  .tile{
+    width:min( calc(92vw / 24), calc(70vh / 11) );
+    height:min( calc(92vw / 24), calc(70vh / 11) );
+    display:grid; place-items:center; background:#f9fafb; border-radius:8px; border:1px solid #e6eef5;
+    font-size: calc(min( calc(92vw / 24), calc(70vh / 11) ) * 0.5);
+    user-select:none; position:relative;
+  }
+  .t-wall{ background:linear-gradient(180deg,#e5e7eb,#d1d5db); border-color:#cfd4da }
+  .t-rock{ background:linear-gradient(180deg,#d9e1e7,#c5d0d8); border-color:#b7c3cc }
+  .t-break{ background:linear-gradient(180deg,#f6d4d4,#f1bcbc); border-color:#e3a3a3 }
+  .t-door{ background:linear-gradient(180deg,#d1d5db,#9ca3af); border-color:#8b949e }
+  .t-open{ background:linear-gradient(180deg,#dcfce7,#bbf7d0); border-color:#86efac }
+  .t-plate{ outline:2px dashed #f59e0b; outline-offset:-4px }
+  .t-targetOK::after{ content:"✓"; position:absolute; right:4px; bottom:2px; font-size:70%; color:#16a34a; font-weight:900 }
+  .player{ background-size:contain; background-repeat:no-repeat; background-position:center; }
+  .box{ font-size: 120% }
+  .exit{ font-size: 110% }
+
+  /* confetti */
+  .confetti{pointer-events:none; position:fixed; inset:0; overflow:hidden; z-index:9999}
+  .piece{position:absolute; width:12px; height:12px; opacity:.9; animation: fall 1400ms linear forwards}
+  @keyframes fall{ to {transform: translateY(110vh) rotate(720deg); opacity:1;} }
+
+  /* Ranking */
+  .rank-list{list-style:none; padding:0; margin:0}
+  .rank-list li{display:grid; grid-template-columns: 44px 1fr 80px; align-items:center; gap:12px; padding:10px 8px; border-bottom:1px dashed #e6eef5}
+  .pos{width:36px; height:36px; display:grid; place-items:center; border-radius:10px; background:#062b44; color:#fff; font-weight:900}
+  .pos.top1{background:#fbbf24; color:#111}
+  .pos.top2{background:#9ca3af}
+  .pos.top3{background:#f59e0b}
+  .name{font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .time{font-weight:900}
+
+  /* Card final imagem */
+  .cele-card{
+    display:grid; gap:16px; grid-template-columns: 1fr; align-items:center; justify-items:center;
+  }
+  .cele-card img{ max-width:100%; border-radius:16px; border:1px solid #e6eef5; box-shadow:0 10px 30px rgba(0,0,0,.06) }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="t">MISSÃO Dia das Crianças 🎈</div>
+      <div class="sub">Complete os 3 jogos em sequência e entre no ranking ao vivo!</div>
+    </div>
+    <div class="meta">
+      <span class="pill">⏱️ <span id="timer">00:00</span></span>
+      <span class="pill">🏁 <b id="stageNow">0</b>/3</span>
+    </div>
+
+    <!-- Selo da ação -->
+    <img class="badge" src="https://i.imgur.com/wMef7hz.png" alt="Selo Dia das Crianças">
+
+    <!-- Logos -->
+    <div class="brand-logos">
+      <img src="https://i.imgur.com/YD7aKmR.png" alt="Logo 1">
+      <img src="https://i.imgur.com/1kNgyCv.png" alt="Logo 2">
+    </div>
+  </header>
+
+  <!-- Gate / Introdução -->
+  <section class="card stage" id="gate">
+    <div class="row">
+      <div class="grow">
+        <div class="big">Bem-vindos à MISSÃO DIA DAS CRIANÇAS!</div>
+        <p>Hoje, vamos resgatar o lado lúdico que existe em cada um de nós.</p>
+        <p><b>Deixe seu nome para o placar final!</b></p>
+        <p>Aqui, não existem regras de adulto. O importante é brincar, se divertir e deixar a curiosidade guiar o caminho. Boa sorte e... que vença a sua criança interior!</p>
+        <div class="row" style="margin-top:10px">
+          <div class="grow">
+            <label for="player">Nome/Time</label>
+            <input id="player" type="text" placeholder="Ex.: Equipe Verde, Super Kids, Ana & João…" />
+          </div>
+          <div>
+            <label style="opacity:0">.</label>
+            <button id="startBtn">COMEÇAR 🚀</button>
+          </div>
+          <button class="btn-ghost" id="skipIntro">PULAR INTRO</button>
+        </div>
+        <p class="hint">Sequência: <b>1)</b> Jogo dos 7 Erros • <b>2)</b> Labirinto (2 níveis) • <b>3)</b> Encontre o PI</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== JOGO 1 — 7 ERROS ======== -->
+  <section class="card stage" id="stage-7erros">
+    <div class="q">Jogo 1 — 7 Erros</div>
+    <p>➡️ Clique nos 7 detalhes diferentes na <b>metade direita</b> da imagem abaixo. A metade esquerda é a referência.</p>
+
+    <div class="board" id="board7">
+      <div class="img-wrap" id="imgWrap7">
+        <img id="img7" alt="Jogo dos 7 Erros" src="https://i.imgur.com/e3zebdt.png">
+        <div class="hotzone" id="hot7"></div>
+      </div>
+    </div>
+
+    <div class="status">
+      <div class="pill">Encontrados: <span class="tally" id="tally7">0/7</span></div>
+    </div>
+  </section>
+
+  <!-- ======== JOGO 2 — LABIRINTO (2 níveis) ======== -->
+  <section class="card stage" id="stage-lab">
+    <div class="q">Jogo 2 — Labirinto</div>
+    <p>Use as setas (ou WASD) para mover. Empurre as caixas ⚪ para cima das plataformas ⚙️ e abra as portas 🚪. Espaço solta bomba 💥 nas pedras vermelhas.</p>
+    <div class="row" style="align-items:center; gap:8px; margin:.4rem 0">
+      <span class="pill">Nível <b id="lab-level">1</b>/2</span>
+      <span class="pill">Movimentos: <b id="lab-moves">0</b></span>
+      <span class="pill">💣 <b id="lab-bombs">0</b></span>
+      <button class="btn-light" id="lab-restart">Reiniciar Labirinto</button>
+    </div>
+    <div id="boardLab" class="board-lab"></div>
+  </section>
+
+  <!-- ======== JOGO 3 — ENCONTRE O PI ======== -->
+  <section class="card stage" id="stage-pi">
+    <div class="q">Jogo 3 — Encontre o PI</div>
+    <p>Toque/clique no local onde o robozinho <b>PI</b> está escondido na imagem.</p>
+    <div class="board" id="boardPi">
+      <div class="img-wrap" id="imgWrapPi">
+        <img id="imgPi" alt="Encontre o PI" src="https://i.imgur.com/ndChmmv.png">
+        <div class="hotzone" id="hotPi"></div>
+      </div>
+    </div>
+    <div class="status">
+      <div class="pill">Encontrado: <span class="tally" id="tallyPi">0/1</span></div>
+    </div>
+  </section>
+
+  <!-- ======== FINAL + RANKING ======== -->
+  <section class="card stage" id="finish">
+    <div class="cele-card">
+      <img src="https://i.imgur.com/X96f5X3.png" alt="Parabéns! Card de comemoração">
+      <div class="success" style="background:linear-gradient(135deg, #a2c617, #d8ff70); padding:16px; border-radius:16px; color:#0f2b00; border:1px solid #b8f14d; width:100%;">
+        <div class="big">🎉 Missão concluída!</div>
+        <p>Tempo total: <b id="finalTime">00:00</b> — mandou muito bem, <b id="who"></b>!</p>
+        <div class="row" style="gap:10px; margin-top:6px">
+          <button id="again" class="btn-alt">JOGAR DE NOVO</button>
+          <button id="share" class="btn-ghost">COPIAR PRO CHAT</button>
+        </div>
+        <p class="small" id="saveStatus" style="margin-top:8px;"></p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="margin:6px 0 10px">🏆 Ranking ao vivo — Top 10</h3>
+    <ol class="rank-list" id="rank"></ol>
+    <p class="small">Critério: menor tempo (segundos). Empates ordenados por envio.</p>
+  </section>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+</div>
+
+<!-- Firebase + Jogos (ES modules) -->
+<script type="module">
+  /* ===========================
+     FIREBASE (v10 modular)
+  ============================ */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, serverTimestamp,
+    query, orderBy, limit, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  // >>> NÃO REMOVER: CONFIG FIREBASE (mantida como você pediu)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCyf7gzoiOWmDu3JxnJTJG8czttfQsht4w",
+    authDomain: "dia-das-criancas-1e461.firebaseapp.com",
+    projectId: "dia-das-criancas-1e461",
+    storageBucket: "dia-das-criancas-1e461.firebasestorage.app",
+    messagingSenderId: "806786524591",
+    appId: "1:806786524591:web:fa9326ccba635890ea3b5a"
+  };
+
+  let db=null, scoresRef=null;
+  try{
+    const app = initializeApp(firebaseConfig);
+    db  = getFirestore(app);
+    // Ranking ÚNICO da missão
+    scoresRef = collection(db, "scores-dia-criancas");
+  }catch(e){
+    console.warn("Firebase não inicializado:", e);
+  }
+
+  async function submitScore(name, secs){
+    if(!scoresRef) return;
+    const cleanName = String(name||"Jogador(a)").slice(0, 40).trim();
+    const timeSecs  = Math.max(0, Math.floor(Number(secs)||0));
+    if(!cleanName || !Number.isFinite(timeSecs)) return;
+    await addDoc(scoresRef, { name: cleanName, timeSecs, createdAt: serverTimestamp() });
+  }
+  function liveRanking(){
+    if(!scoresRef) return;
+    const qTop = query(scoresRef, orderBy("timeSecs","asc"), orderBy("createdAt","asc"), limit(10));
+    onSnapshot(qTop, (snap)=>{
+      const ul = document.querySelector("#rank");
+      ul.innerHTML = "";
+      let pos=1;
+      snap.forEach((doc)=>{
+        const d = doc.data();
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div class="pos ${pos===1?'top1':pos===2?'top2':pos===3?'top3':''}">${pos}</div>
+          <div class="name">${(d.name||'Jogador(a)')}</div>
+          <div class="time">${fmt(d.timeSecs)}</div>
+        `;
+        ul.appendChild(li);
+        pos++;
+      });
+    }, (err)=>{
+      console.warn("Ranking ao vivo indisponível:", err);
+    });
+  }
+
+  /* ===========================
+     ESTADO GERAL
+  ============================ */
+  const $  = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  let timerInt=null, seconds=0, currentStage=0, playerName="";
+  const TOTAL_STAGES = 3; // 7 erros, labirinto (2 níveis já dentro), encontre PI (1)
+  const COLORS_CONFETTI = ["#005d9a","#0a77bf","#a2c617","#6ee7b7","#93c5fd","#f472b6"];
+
+  function fmt(s){ s=Math.max(0,Number(s)||0); const m=Math.floor(s/60), ss=String(Math.floor(s%60)).padStart(2,"0"); return `${m}:${ss}`; }
+  function startTimer(){ stopTimer(); timerInt=setInterval(()=>{seconds++; $("#timer").textContent=fmt(seconds)},1000); }
+  function stopTimer(){ if(timerInt){clearInterval(timerInt); timerInt=null;} }
+  function setStageEl(id){
+    $$(".stage").forEach(el=>el.classList.remove("active"));
+    $("#"+id).classList.add("active");
+  }
+  function setStageNumber(n){
+    currentStage = n;
+    $("#stageNow").textContent = String(n);
+  }
+  function celebrate(){
+    const box=$("#confetti");
+    for(let i=0;i<140;i++){
+      const d=document.createElement("div");
+      d.className="piece";
+      d.style.left=Math.random()*100+"%";
+      d.style.transform=`translateY(-10vh) rotate(${Math.random()*360}deg)`;
+      d.style.background=COLORS_CONFETTI[Math.floor(Math.random()*COLORS_CONFETTI.length)];
+      d.style.width=d.style.height=(8+Math.random()*10)+"px";
+      d.style.animationDuration=(900+Math.random()*900)+"ms";
+      box.appendChild(d);
+      setTimeout(()=> d.remove(), 1800);
+    }
+  }
+
+  function goTo7Erros(){ setStageNumber(1); setStageEl("stage-7erros"); }
+  function goToLab(){ setStageNumber(2); setStageEl("stage-lab"); resetLabAndLoad(); }
+  function goToPi(){ setStageNumber(3); setStageEl("stage-pi"); resetPi(); }
+  async function finishAll(){
+    stopTimer(); celebrate();
+    const end = fmt(seconds);
+    $("#finalTime").textContent = end;
+    $("#who").textContent = playerName;
+    $("#saveStatus").textContent = scoresRef ? "Salvando seu tempo no ranking…" : "Ranking indisponível no momento.";
+    setStageEl("finish");
+    try{
+      await submitScore(playerName, seconds);
+      if(scoresRef) $("#saveStatus").textContent = "✅ Tempo salvo! Veja o Top 10 abaixo (ao vivo).";
+    }catch(e){
+      console.error(e);
+      $("#saveStatus").textContent = "⚠️ Não foi possível salvar no ranking agora.";
+    }
+  }
+
+  function resetAll(){
+    seconds=0; $("#timer").textContent="00:00"; stopTimer();
+    setStageEl("gate"); setStageNumber(0);
+    // reset de sub-jogos
+    reset7Erros(true);
+    // labirinto e pi resetados na entrada
+  }
+
+  // Gate
+  $("#startBtn").addEventListener("click", ()=>{
+    const val = $("#player").value.trim();
+    playerName = val || "Jogador(a)";
+    seconds=0; startTimer();
+    goTo7Erros();
+  });
+  $("#skipIntro").addEventListener("click", ()=>{ $("#player").value="Visitante"; $("#startBtn").click(); });
+  $("#again").addEventListener("click", ()=> resetAll());
+  $("#share").addEventListener("click", ()=>{
+    const msg = `🏁 MISSÃO Dia das Crianças\n• Jogador: ${playerName}\n• Tempo total: ${fmt(seconds)}\nDesafio concluído! 🎉`;
+    navigator.clipboard.writeText(msg).then(()=> alert("Mensagem copiada! Cole no chat/Teams 😄"));
+  });
+
+  /* ===========================
+     JOGO 1 — 7 ERROS (baseado no seu arquivo)
+  ============================ */
+  const CONTROL_PTS_7 = [
+    {"x":28.77,"y":33.88,"r":3},
+    {"x":85.57,"y":57.86,"r":3},
+    {"x":63.49,"y":44.11,"r":3},
+    {"x":76.32,"y":39.92,"r":3},
+    {"x":15.00,"y":33.71,"r":3},
+    {"x":52.36,"y":91.24,"r":3},
+    {"x":52.74,"y":40.42,"r":3}
+  ];
+  const hot7 = $("#hot7");
+  const wrap7= $("#imgWrap7");
+  let found7 = Array(7).fill(false);
+
+  function updateHUD7(){
+    const c = found7.filter(Boolean).length;
+    $("#tally7").textContent = `${c}/7`;
+  }
+  function clearMarks7(){ $$("#imgWrap7 .marker").forEach(m=>m.remove()); }
+  function drawMarks7(){
+    clearMarks7();
+    const rect = wrap7.getBoundingClientRect(); if(!rect.width||!rect.height) return;
+    const rightLeft = rect.width * 0.5, rightW = rect.width * 0.5, rightH = rect.height;
+    CONTROL_PTS_7.forEach((p,idx)=>{
+      if(!found7[idx]) return;
+      const cx = rightLeft + (p.x/100)*rightW;
+      const cy = (p.y/100)*rightH;
+      const mk = document.createElement("div");
+      mk.className="marker"; mk.style.left=`${cx}px`; mk.style.top=`${cy}px`;
+      wrap7.appendChild(mk);
+    });
+  }
+  function distPct(px,py,p){ const dx=px-p.x, dy=py-p.y; return Math.sqrt(dx*dx+dy*dy); }
+  function handleClick7(e){
+    const rect = wrap7.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    if(x < rect.width*0.5) return; // só lado direito
+    const rightX = (x - rect.width*0.5) / (rect.width*0.5) * 100;
+    const rightY = (y / rect.height) * 100;
+
+    let hit=false;
+    CONTROL_PTS_7.forEach((p,idx)=>{
+      if(found7[idx]) return;
+      const d = distPct(rightX,rightY,p);
+      if(d <= p.r){ found7[idx]=true; hit=true; }
+    });
+
+    if(hit){
+      drawMarks7(); updateHUD7();
+      if(found7.every(Boolean)){
+        // Próximo jogo: Labirinto
+        celebrate();
+        setTimeout(()=> goToLab(), 600);
+      }
+    }else{
+      const rip=document.createElement("div");
+      rip.className="ripple"; rip.style.left=`${x}px`; rip.style.top=`${y}px`;
+      wrap7.appendChild(rip); setTimeout(()=>rip.remove(),800);
+    }
+  }
+  function reset7Erros(hide){
+    found7 = Array(7).fill(false);
+    updateHUD7(); clearMarks7();
+    if(hide) {/* nada */}
+  }
+  hot7.addEventListener("click", handleClick7);
+  window.addEventListener("resize", drawMarks7);
+  $("#img7").addEventListener("load", ()=>{ reset7Erros(); drawMarks7(); }, {once:true});
+
+  /* ===========================
+     JOGO 2 — LABIRINTO (2 níveis) — adaptado
+     (Base no seu "labirinto teste", removendo timer próprio e plugando no fluxo)
+  ============================ */
+  const LAB = {
+    bombsStart: 2,
+    tiles: { empty:" ", wall:"#", rock:"R", break:"X", box:"B", plate:".", door:"D", start:"S", exit:"E" },
+    maps: [
+      [
+        "###################",
+        "#      # E #      #",
+        "#      #   #      #",
+        "#      # B #      #",
+        "#      #B B#      #",
+        "#      # B #      #",
+        "#      #B B#      #",
+        "#      # B #      #",
+        "#        S        #",
+        "###################",
+      ],
+      [
+        "###################",
+        "#     ###E###     #",
+        "#     ### ###     #",
+        "#     #     #     #",
+        "#     #BB BB#     #",
+        "#     # BBB #     #",
+        "#     #B   B#     #",
+        "#     # BBB #     #",
+        "#        S        #",
+        "###################",
+      ]
+    ],
+    sprites: {
+      player: {
+        U: 'https://i.imgur.com/vIiUulF.png',
+        D: 'https://i.imgur.com/uqvbspr.png',
+        L: 'https://i.imgur.com/1zHJY4h.png',
+        R: 'https://i.imgur.com/RECL498.png'
+      },
+      wall:"🪨", rock:"🪨", break:"💥", box:"⬜", plate:"⚙️", door:"🚪", open:"🟩", exit:"🚩"
+    }
+  };
+  const DIRS = { U:[-1,0], D:[1,0], L:[0,-1], R:[0,1] };
+  const boardLab = $("#boardLab");
+
+  let labRows, labCols, labBase, labGrid, labPlayer, labBombs, labMoves=0, labDir='D', labLevel=0;
+
+  function inBounds(r,c){ return r>=0 && r<labRows && c>=0 && c<labCols; }
+  function platesOK(){
+    const T=LAB.tiles;
+    for(let r=0;r<labRows;r++){
+      for(let c=0;c<labCols;c++){
+        if(labBase[r][c]===T.plate && labGrid[r][c]!==T.box) return false;
+      }
+    }
+    return true;
+  }
+  function isWalkable(ch, doorsOpen){
+    const T=LAB.tiles;
+    if(ch===T.wall || ch===T.rock) return false;
+    if(ch===T.door) return !!doorsOpen;
+    return true;
+  }
+  function renderLab(){
+    $("#lab-level").textContent = String(labLevel+1);
+    $("#lab-moves").textContent = labMoves;
+    $("#lab-bombs").textContent = labBombs;
+
+    boardLab.style.gridTemplateColumns = `repeat(${labCols}, min( calc(92vw / 24), calc(70vh / 11) ))`;
+    boardLab.innerHTML="";
+    const doorsOpen = platesOK();
+
+    for(let r=0;r<labRows;r++){
+      for(let c=0;c<labCols;c++){
+        const base = labBase[r][c], dyn = labGrid[r][c];
+        const tile = document.createElement("div");
+        tile.className="tile";
+
+        if(base===LAB.tiles.wall) tile.classList.add("t-wall"), tile.innerText=LAB.sprites.wall;
+        if(base===LAB.tiles.rock) tile.classList.add("t-rock"), tile.innerText=LAB.sprites.rock;
+        if(base===LAB.tiles.plate){
+          tile.classList.add("t-plate");
+          if(labGrid[r][c]!==LAB.tiles.box) tile.innerText=LAB.sprites.plate;
+          if(labGrid[r][c]===LAB.tiles.box) tile.classList.add("t-targetOK");
+        }
+        if(base===LAB.tiles.door){
+          tile.classList.add(doorsOpen? "t-open":"t-door");
+          tile.innerText = doorsOpen ? LAB.sprites.open : LAB.sprites.door;
+        }
+        if(base===LAB.tiles.exit){ tile.classList.add("t-open"); tile.innerText=LAB.sprites.exit; }
+
+        if(dyn===LAB.tiles.box){ tile.innerText=LAB.sprites.box; tile.classList.add("box"); }
+        if(dyn===LAB.tiles.break){ tile.innerText=LAB.sprites.break; }
+
+        if(labPlayer.r===r && labPlayer.c===c){
+          tile.style.backgroundImage = `url('${LAB.sprites.player[labDir]}')`;
+          tile.classList.add("player");
+        }
+        boardLab.appendChild(tile);
+      }
+    }
+
+    // Check vitória do nível
+    if(labBase[labPlayer.r][labPlayer.c]===LAB.tiles.exit){
+      levelCompleteLab();
+    }
+  }
+  function loadLabLevel(){
+    const raw = LAB.maps[labLevel];
+    labRows=raw.length; labCols=raw[0].length;
+    labBombs=LAB.bombsStart; labMoves=0; labDir='D';
+    $("#lab-moves").textContent=labMoves;
+
+    labBase = Array.from({length:labRows}, (_,r)=> Array.from(raw[r]));
+    labGrid = Array.from({length:labRows}, ()=> Array.from({length:labCols}, ()=> LAB.tiles.empty));
+    for(let r=0;r<labRows;r++){
+      for(let c=0;c<labCols;c++){
+        const ch = raw[r][c];
+        if(ch===LAB.tiles.start){ labPlayer={r,c}; labBase[r][c]=LAB.tiles.empty; }
+        else if(ch===LAB.tiles.box){ labGrid[r][c]=LAB.tiles.box; labBase[r][c]=LAB.tiles.empty; }
+        else if(ch===LAB.tiles.break){ labGrid[r][c]=LAB.tiles.break; labBase[r][c]=LAB.tiles.empty; }
+      }
+    }
+    renderLab();
+  }
+  function tryMoveLab(dir){
+    const [dr,dc] = DIRS[dir]; const nr=labPlayer.r+dr, nc=labPlayer.c+dc;
+    if(!inBounds(nr,nc)) return;
+    const doorsOpen = platesOK();
+    const baseAhead = labBase[nr][nc], dynAhead = labGrid[nr][nc];
+    if(!isWalkable(baseAhead, doorsOpen)) return;
+
+    if(dynAhead===LAB.tiles.box){
+      const nnr=nr+dr, nnc=nc+dc;
+      if(!inBounds(nnr,nnc)) return;
+      const baseNext = labBase[nnr][nnc], dynNext = labGrid[nnr][nnc];
+      if(!isWalkable(baseNext, doorsOpen) || dynNext!==LAB.tiles.empty) return;
+      labGrid[nnr][nnc] = LAB.tiles.box;
+      labGrid[nr][nc]   = LAB.tiles.empty;
+    }
+    if(dynAhead===LAB.tiles.break) return;
+
+    labPlayer.r=nr; labPlayer.c=nc; labDir=dir;
+    labMoves++; $("#lab-moves").textContent=labMoves;
+    renderLab();
+  }
+  function breakRockLab(){
+    if(labBombs<=0) return;
+    for(const [dr,dc] of Object.values(DIRS)){
+      const r=labPlayer.r+dr, c=labPlayer.c+dc;
+      if(!inBounds(r,c)) continue;
+      if(labGrid[r][c]===LAB.tiles.break){
+        labGrid[r][c]=LAB.tiles.empty; labBombs--; $("#lab-bombs").textContent=labBombs;
+        labMoves++; $("#lab-moves").textContent=labMoves;
+        renderLab(); return;
+      }
+    }
+  }
+  function levelCompleteLab(){
+    celebrate();
+    if(labLevel < LAB.maps.length-1){
+      labLevel++;
+      setTimeout(loadLabLevel, 900);
+    }else{
+      // terminou os 2 níveis → próximo jogo
+      setTimeout(()=> goToPi(), 700);
+    }
+  }
+  function resetLabAndLoad(){
+    labLevel=0; loadLabLevel();
+  }
+  window.addEventListener("keydown",(e)=>{
+    if(!$("#stage-lab").classList.contains("active")) return;
+    const k=e.key.toLowerCase();
+    if(["arrowup","w"].includes(k)) { e.preventDefault(); tryMoveLab("U"); }
+    if(["arrowdown","s"].includes(k)) { e.preventDefault(); tryMoveLab("D"); }
+    if(["arrowleft","a"].includes(k)) { e.preventDefault(); tryMoveLab("L"); }
+    if(["arrowright","d"].includes(k)) { e.preventDefault(); tryMoveLab("R"); }
+    if(k===" ") { e.preventDefault(); breakRockLab(); }
+  });
+  $("#lab-restart").addEventListener("click", ()=> resetLabAndLoad());
+
+  /* ===========================
+     JOGO 3 — ENCONTRE O PI (baseado no seu arquivo)
+  ============================ */
+  const PI_POINT = { x:50.42, y:78.32, r:3 }; // coordenadas %
+  const wrapPi = $("#imgWrapPi");
+  const hotPi  = $("#hotPi");
+  let piFound=false;
+
+  function updateHUDPi(){ $("#tallyPi").textContent = `${piFound?1:0}/1`; }
+  function clearMarksPi(){ $$("#imgWrapPi .marker").forEach(m=>m.remove()); }
+  function drawMarkPi(){
+    clearMarksPi();
+    if(!piFound) return;
+    const rect = wrapPi.getBoundingClientRect(); if(!rect.width||!rect.height) return;
+    const w = rect.width, h = rect.height;
+    const mk = document.createElement("div");
+    mk.className="marker";
+    mk.style.left = `${(PI_POINT.x/100)*w}px`;
+    mk.style.top  = `${(PI_POINT.y/100)*h}px`;
+    wrapPi.appendChild(mk);
+  }
+  function handleClickPi(e){
+    if(piFound) return;
+    const rect = wrapPi.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    const relX = (x/rect.width)*100, relY=(y/rect.height)*100;
+    const d = Math.hypot(relX-PI_POINT.x, relY-PI_POINT.y);
+    if(d <= PI_POINT.r){
+      piFound=true; updateHUDPi(); drawMarkPi(); celebrate();
+      setTimeout(()=> finishAll(), 700);
+    }else{
+      const rip=document.createElement("div");
+      rip.className="ripple"; rip.style.left=`${x}px`; rip.style.top=`${y}px`;
+      wrapPi.appendChild(rip); setTimeout(()=>rip.remove(),800);
+    }
+  }
+  function resetPi(){ piFound=false; updateHUDPi(); clearMarksPi(); }
+  hotPi.addEventListener("click", handleClickPi);
+  window.addEventListener("resize", drawMarkPi);
+  $("#imgPi").addEventListener("load", ()=>{ resetPi(); }, {once:true});
+
+  /* ===========================
+     Boot
+  ============================ */
+  function boot(){ resetAll(); liveRanking(); }
+  boot();
+</script>
+</body>
+</html>
